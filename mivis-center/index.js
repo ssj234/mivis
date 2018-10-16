@@ -16,6 +16,9 @@ const mivisConfigKey = "mivisConfig";
 var miDevManager = require('mivis-mi-dm');
 var mivisStorage = require('node-persist').create();
 mivisStorage.initSync({ dir: mivisConfigPath});
+
+const devUtil = require("./util/DevUtil");
+const wifiUtil = require("./util/WifiUtil");
 // mivisStorage.getItem("cachedDevices");
 // mivisStorage.setItemSync("cachedDevices", this.devices);
 
@@ -30,7 +33,7 @@ if(!fs.existsSync(hbConfigPath)){ // 没有config文件
   fs.writeFileSync(hbConfigPath,JSON.stringify({
     bridge:{
       name:"mivis",
-      username:'devInfo.getMac().toUpperCase()',
+      username:devUtil.getMac().toUpperCase(),
       port:55155,
       pin:'623-88-626'
     },
@@ -236,8 +239,6 @@ app.post('/joinDevice',bodyParser.text(),async function(req,res){
  * 网络管理
  ************************************************/
 
- const devUtil = require("./util/DevUtil");
- const wifiUtil = require("./util/WifiUtil");
 
 // 获取本机配置
 app.get('/devInfo', function (req, res) {
@@ -322,6 +323,53 @@ app.get("/delCache",function(req,res){
   res.end(JSON.stringify({success:true}));
 });
 
+
+app.get("/qrcode",function(req,res){
+  var command = "cat `forever logs | awk '{if ($3~/homebridge/) print $4;else print \"nolog\"}'|sed -r \"s/\\x1B\\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]\/\/g\"` |grep X-HM| tail -n 1";
+  exec(command, function (err, stdout, stderr) {
+      if (err) {
+          // console.error(err);
+          res.end(JSON.stringify({error:99999}));
+          return;
+      }
+      if(stdout){
+          // console.log("qrcode:" + stdout);
+          res.end(JSON.stringify({code:stdout.trim()}));
+      }else{
+          // console.error(err)
+          res.end(JSON.stringify({error:99999}));
+          return;
+      }
+  });
+})
+
+app.get("/runstatus",function(req,res){
+  var status = false;
+  var pid = -1;
+  var data = fs.readFileSync(hbConfigPath); // read
+  var hbconfig = JSON.parse(data);
+  var pinCode = hbconfig.bridge.pin;
+
+  exec("ps aux", function (err, stdout, stderr) {
+      if (err) {
+        console.error(err)
+        res.end(JSON.stringify({pinCode:pinCode,status:status}));
+        return;
+      }
+      stdout.split('\n').filter((line) => {
+        let processMessage = line.trim().split(/\s+/)
+        for(let idx in processMessage){
+          let processName = processMessage[idx];
+          if (processName === 'homebridge') {
+              status = true;
+              pid = processMessage[1];
+            }
+        }
+      })
+      res.end(JSON.stringify({status:status,pid:pid,pinCode:pinCode}));
+    });
+})
+
 // 删除缓存
 function emptyDir(fileUrl){   
   if(!fs.existsSync(fileUrl))return;
@@ -337,7 +385,7 @@ function emptyDir(fileUrl){
 }
 
 module.exports = function() {
-    var server = app.listen(9982, function () {
+    var server = app.listen(9981, function () {
     var host = "0.0.0.0";//server.address().address
     var port = server.address().port
     console.log("应用实例，访问地址为 http://%s:%s", host, port);

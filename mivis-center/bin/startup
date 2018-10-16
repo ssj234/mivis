@@ -6,7 +6,7 @@
 
 'use strict';
 
-process.title = 'sirivis-web-mi';
+process.title = 'mivis-center';
 
 // Find the HomeBridge lib
 var path = require('path');

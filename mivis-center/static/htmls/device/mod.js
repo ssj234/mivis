@@ -1,8 +1,8 @@
 
 //@ sourceURL=mod.js
-DeviceController.$inject = ['$scope', '$http', '$targets'];
-function DeviceController($scope, $http, $targets) {
-
+DeviceController.$inject = ['$scope', '$http', '$targets','$interval'];
+function DeviceController($scope, $http, $targets,$interval) {
+    $scope.runningShow = "获取中...";
     $scope.rebootHB = function(){
         $.confirm("确定要重启网桥吗？", function() {
           $http.get("rebootHB").then(function(data){
@@ -32,4 +32,47 @@ function DeviceController($scope, $http, $targets) {
         });
     }
 
+    /*$scope.drawQRCode = function(){
+      $http.get("qrcode").then(function(data){
+        
+        data = data.data;
+        var code =  data.code;
+        if(code){
+          $("#qrcodePopup").popup();
+          $scope.code = data.code;
+          $("#qrcode").empty();
+          $("#qrcode").qrcode({
+            render: "table", //table方式
+            width: 200, //宽度
+            height:200, //高度
+            text: code //任意内容
+          });
+        }else{
+          $scope.codeShow = false;
+        }
+        $scope.code = code|| "未能获取到Homebridge的信息";
+      });
+    }
+    $scope.drawQRCode();*/
+
+
+    
+
+    function getStatus(){
+      $.get("runstatus",function(data){ // 获取config文件内容
+        $scope.running = data.status;
+        $scope.runningShow = data.status?"运行中":"未运行";
+        $scope.pinCode = data.pinCode;
+      })
+    }
+    $scope.handler = $interval(getStatus,3000);
+    getStatus();
+
+
+    $scope.$on("$destroy",function(){
+      if($scope.handler){
+        $interval.cancel($scope.handler);
+        $scope.handler = null;
+      }
+    })
 }

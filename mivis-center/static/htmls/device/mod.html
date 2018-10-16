@@ -4,7 +4,30 @@
         <h1 class="demos-title">设备管理</h1>
     </header>
 
+
     <div class="weui-tab">    
+        <div class="weui-cells" style="margin-bottom:10px;">
+            <div class="weui-cell">
+              <div class="weui-cell__bd">
+                <p>homebridge运行状态</p>
+              </div>
+              <div class="weui-cell__ft">{{runningShow}}</div>
+            </div>
+            <div class="weui-cell">
+                <div class="weui-cell__bd">
+                  <p>8位代码</p>
+                </div>
+                <div class="weui-cell__ft">{{pinCode}}</div>
+              </div>
+            <!-- <a class="weui-cell weui-cell_access" href="javascript:;">
+                <div class="weui-cell__bd">
+                  <p>查看二维码</p>
+                </div>
+                <div class="weui-cell__ft">
+                </div>
+            </a>-->
+        </div>
+
         <div class="weui-grids">
             <a href="" class="weui-grid js_grid" ng-click="rebootHB()">
               <div class="weui-grid__icon">
@@ -30,6 +53,14 @@
                   重启设备
                 </p>
               </a>
+              <a href="" class="weui-grid js_grid" ng-click="frpc()">
+                  <div class="weui-grid__icon">
+                    <img src="images/icon_nav_panel.png" alt="">
+                  </div>
+                  <p class="weui-grid__label">
+                    远程协助
+                  </p>
+                </a>
           </div>
 
           

@@ -6,8 +6,8 @@ const os = require("os");
 
 const SSID = "wpa-ssid";
 const PSK = "wpa-psk";
-const base = "/home/pi/sirivis/conf/interfaces";
-const basebak = "/home/pi/sirivis/conf/interfaces.bak";
+const base = "/home/pi/mivis/conf/interfaces";
+const basebak = "/home/pi/mivis/conf/interfaces.bak";
 const command0 = "cp "+base+" "+basebak;
 const command1 = 'sed -i "s/#SSID#/#SSID_VALUE#/g" '+basebak;
 const command2 = 'sed -i "s/#PSK#/#PSK_VALUE#/g" '+basebak;
