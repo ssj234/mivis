@@ -1,0 +1,21 @@
+{
+  "author": {
+    "name": "ssj234"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "log4js": "~2.5.3"
+  },
+  "deprecated": false,
+  "description": "mivis的工具类",
+  "keywords": [
+    "mivis"
+  ],
+  "license": "Apache-2.0",
+  "main": "index.js",
+  "name": "mivis-util",
+  "scripts": {
+    "log": "node test/testlog.js"
+  },
+  "version": "0.0.1"
+}

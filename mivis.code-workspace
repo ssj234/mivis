@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "mivis-mi-dm"
+		},
+		{
+			"path": "mivis-broadlink-dm"
+		},
+		{
+			"path": "mivis-util"
+		},
+		{
+			"path": "mivis-center"
+		}
+	]
+}

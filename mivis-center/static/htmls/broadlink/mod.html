@@ -1,0 +1,165 @@
+<div class="weui-tab__bd" ng-controller="BroadlinkController">
+        
+        <!-- 容器 -->
+<div class="weui-tab">
+        <div class="weui-loadmore weui-loadmore_line">
+                <span class="weui-loadmore__tips">博联设备</span>
+        </div>
+                <div class="weui-tab__bd">
+                  <div id="tab1" class="weui-tab__bd-item weui-tab__bd-item--active">
+                                <div class="weui-panel weui-panel_access">
+                                                <div class="weui-panel__hd">
+                                                                <div class="weui-flex">
+                                                                        <div class="weui-flex__item">
+                                                                                当前列表包含检测到的在线网关和手动添加的网关<br>
+                                                                                1.点击右侧加号可手动添加网关<br>
+                                                                                2.点击网关可设置局域网密钥<br>
+                                                                        </div>
+                                                                        <div>
+                                                                                <a ng-click="addLocal()" href="javascript:;" class="weui-btn weui-btn_mini weui-btn_plain-default">新增</a><br>
+                                                                                <a ng-click="loadDeviceList(null,true)" href="javascript:;" class="weui-btn weui-btn_mini weui-btn_plain-primary">刷新</a><br>
+                                                                        </div>
+                                                                </div>
+                                                </div>
+                                                <div class="weui-panel__bd">
+                                                  <a ng-click="openMenu(device)" ng-repeat=" (mac,device) in deviceList" href="javascript:void(0);" class="weui-media-box weui-media-box_appmsg">
+                                                    <div class="weui-media-box__hd">
+                                                      <img class="weui-media-box__thumb" src="../../images/icon_nav_new.png">
+                                                    </div>
+                                                    <div class="weui-media-box__bd">
+                                                                <div class="weui-flex">                
+                                                                        <div class="weui-flex__item">
+                                                                                <h4 ng-if="device.online" class="weui-media-box__title">
+                                                                                        [在线] MAC：{{device.mac}}
+                                                                                </h4>
+                                                                                <h4 ng-if="!device.online" class="weui-media-box__title">
+                                                                                        MAC：{{device.mac}}
+                                                                                </h4>
+                                                                                <p ng-if="device.online" class="weui-media-box__desc">
+                                                                                        IP：{{device.ip}}
+                                                                                </p>
+                                                                                <p class="weui-media-box__desc">
+                                                                                        密钥：{{device.token}}
+                                                                                </p>
+                                                                        </div>
+                                                                        <div>
+                                                                                <i ng-click='toggleChecked(device,$event)' ng-if="device.checked" class="weui-icon-success"></i>
+                                                                                <i ng-click='toggleChecked(device,$event)' ng-if="!device.checked" class="weui-icon-circle"></i>
+                                                                        </div>
+                                                                </div>
+                                                    </div>
+                                                  </a>
+                                                </div>
+                                </div>
+                                <div class="weui-btn-area">
+                                        <a ng-click="add2Hb()" href="javascript:;" class="weui-btn weui-btn_primary">同步到homekit中</a>
+                                </div>
+                                <div style="height:50px;"></div>
+                  </div>
+                  
+                </div>
+</div>
+
+<div id="addPopup" class="weui-popup__container">
+        <div class="weui-popup__overlay"></div>
+        <div class="weui-popup__modal">
+                <!-- <div style="height:50px;"></div>-->
+                <div >
+                        <div class="weui-cells__title">设备类型</div>
+                        <div class="weui-cells weui-cells_radio">
+                                <label class="weui-cell weui-check__label" for="x11">
+                                  <div class="weui-cell__bd">
+                                    <p>小米网关</p>
+                                  </div>
+                                  <div class="weui-cell__ft">
+                                    <input type="radio" class="weui-check" name="radio1" id="x11"  checked="checked">
+                                    <span class="weui-icon-checked"></span>
+                                  </div>
+                                </label>
+                        </div>
+                        <div class="weui-cells__title">mac地址</div>
+                        <div class="weui-cells">
+                                <div class="weui-cell">
+                                        <div class="weui-cell__bd">
+                                        <input ng-readonly="configObject.update" class="weui-input" ng-model="configObject.mac" id="gw_mac" type="text" maxlength="12" placeholder="格式为:7811DCB907C5">
+                                        </div>
+                                </div>
+                        </div>
+                        <div class="weui-cells__title">局域网密码</div>
+                        <div class="weui-cells">
+                                <div class="weui-cell">
+                                        <div class="weui-cell__bd">
+                                        <input class="weui-input" ng-model="configObject.token" id="gw_token" type="text" maxlength="16" placeholder="16位数字与字母">
+                                        </div>
+                                </div>
+                        </div>
+                        <div class="weui-btn-area">
+                                <a ng-if="!configObject.update" class="weui-btn weui-btn_primary" href="javascript:"  ng-click="addDevice(false)">添加</a>
+                                <a ng-if="configObject.update" class="weui-btn weui-btn_primary" href="javascript:"  ng-click="addDevice(true)">修改</a>
+                                <a class="weui-btn weui-btn_default close-popup" href="javascript:" id="closePopup" ng-click="addLocalCancel()">取消</a>
+                        </div>
+                        
+        </div>
+</div>
+
+        
+</div>
+
+
+
+<div id="half" class="weui-popup__container popup-bottom weui-popup__container--visible" style="display: block;">
+                <div class="weui-popup__overlay"></div>
+                <div class="weui-popup__modal">
+                  <div class="toolbar">
+                    <div class="toolbar-inner">
+                      <a id="closePopupBtm" href="javascript:;" class="picker-button close-popup">关闭</a>
+                      <h1 class="title">{{selectedDevice.mac}}</h1>
+                    </div>
+                  </div>
+                  <div class="modal-content">
+                    <div class="weui-grids">
+                        
+                        <a ng-click="updateLocal()" href="javascript:;" class="weui-grid js_grid" data-id="progress">
+                                <div class="weui-grid__icon">
+                                <img src="images/icon_nav_progress.png" alt="">
+                                </div>
+                                <p class="weui-grid__label">
+                                修改
+                                </p>
+                        </a>
+                        <a ng-click="deleteLocal()" ng-if="!selectedDevice.online" href="javascript:;" class="weui-grid js_grid" data-id="dialog">
+                                <div class="weui-grid__icon">
+                                <img src="images/icon_nav_dialog.png" alt="">
+                                </div>
+                                <p class="weui-grid__label">
+                                删除
+                                </p>
+                        </a>
+                        <a ng-if="selectedDevice.online" ng-click="subDevices()" href="javascript:;" class="weui-grid js_grid" data-id="progress">
+                                <div class="weui-grid__icon">
+                                  <img src="images/icon_nav_progress.png" alt="">
+                                </div>
+                                <p class="weui-grid__label">
+                                  查看设备列表
+                                </p>
+                        </a>
+                        <a ng-if="selectedDevice.online" ng-click="subDevices()" href="javascript:;" class="weui-grid js_grid" data-id="progress">
+                                <div class="weui-grid__icon">
+                                        <img src="images/icon_nav_progress.png" alt="">
+                                </div>
+                                <p class="weui-grid__label">
+                                        开灯
+                                </p>
+                        </a>
+                        <a ng-if="selectedDevice.online" ng-click="subDevices()" href="javascript:;" class="weui-grid js_grid" data-id="progress">
+                                <div class="weui-grid__icon">
+                                        <img src="images/icon_nav_progress.png" alt="">
+                                </div>
+                                <p class="weui-grid__label">
+                                        关灯
+                                </p>
+                        </a>
+                    </div>
+                  </div>
+                </div>
+</div>

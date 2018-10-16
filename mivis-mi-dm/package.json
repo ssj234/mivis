@@ -1,0 +1,19 @@
+{
+  "author": {
+    "name": "ssj234"
+  },
+  "bundleDependencies": false,
+  "dependencies": {},
+  "deprecated": false,
+  "description": "mivis的小米设备管理器",
+  "keywords": [
+    "mivis"
+  ],
+  "license": "Apache-2.0",
+  "main": "index.js",
+  "name": "mivis-mi-dm",
+  "scripts": {
+    "log": "node test/testlog.js"
+  },
+  "version": "0.0.1"
+}

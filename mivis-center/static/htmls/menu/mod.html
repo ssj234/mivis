@@ -1,0 +1,9 @@
+<div ng-controller="menuController" class="weui-tabbar" style="position:fixed;">
+	<a data-ng-repeat="menu in uxzoomMenu" href="javascript:;" data-ng-click="redirectTo(menu.url)" class="weui-tabbar__item weui-bar__item--on">
+	  <span ng-if="menu.count >0" class="weui-badge" style="position: absolute;top: -.4em;right: 1em;">{{menu.count}}</span>
+	  <div class="weui-tabbar__icon">
+		<img ux-image="./images/{{menu.img}}" alt="">
+	  </div>
+	  <p class="weui-tabbar__label">{{menu.name}}</p>
+	</a>
+  </div>

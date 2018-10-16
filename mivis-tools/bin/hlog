@@ -1,0 +1,1 @@
+less `forever logs | awk '{if ($3~/homebridge/) print $4;else print "nolog"}'|sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g"`

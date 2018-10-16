@@ -1,0 +1,57 @@
+<style>
+	.ux-menu li .ux-level1:hover, .ux-inner-menu li:hover {
+		background: #dddddd;
+	}
+
+	.ux-menu .ux-item {
+		width: 100%;
+	}
+
+	.ux-level1 {
+		display: inline-block;
+		width: 100%;
+		height: 50px;
+		line-height: 50px;
+		border-bottom: 1px solid #CFD8DC;
+		cursor: pointer;
+	}
+
+	.ux-level1.active {
+		box-shadow: 0 2px 5px #838383;
+		color: #2182D5;
+	}
+
+	.ux-inner-menu {
+		background: #CFD8DC;
+		display: none;
+		cursor: pointer;
+	}
+
+	.ux-inner-menu li {
+		height: 40px;
+		line-height: 40px;
+		padding: 0 16px 0 24px;
+		font-size: 14px;
+		text-align: left;
+	}
+
+</style>
+<div ng-controller="menuController" style="height: 100%; color: #58737E;">
+	<ul class="ux-menu">
+		<li class="ux-item" data-ng-repeat="menu in uxzoomMenu">
+			<span class="ux-level1" data-ng-class="{active:selectedIdx==$index}" data-ng-click="open($index)">
+				<span class="iconfont" style="font-size: 20px; display: inline-block; width: 50px; text-align: center;">&#xe600;</span>
+				{{menu.name}}
+			</span>
+			<ul class="ux-inner-menu" data-ng-style="{display:selectedIdx==$index?'block':'none'}">
+				<li data-ng-repeat="innerMenu in menu.sons" data-ng-click="redirectTo(innerMenu.url)">
+					{{$index + 1}}.{{innerMenu.name}}
+				</li>
+			</ul>
+		</li>
+	</ul>
+	<div id="tip" style="display:none;position: absolute;height:0;bottom: 0px;width:100%;background: rgb(51, 122, 183);color: #fff;;">
+	<p style="padding-left: 5px;width: 80%;">{{tip}}</p>
+	<a ng-click="close();" style="cursor:pointer;top:0px;padding: 8px;position: absolute;right: 0px;background: red;width: 30px;text-align: center;color: #fff;height: 100%;">x</a>
+	</div>
+</div>

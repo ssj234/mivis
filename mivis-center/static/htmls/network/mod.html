@@ -1,0 +1,69 @@
+<div class="weui-tab__bd" ng-controller="NetworkController">
+
+    <header class="demos-header" style="padding-bottom: 0px;">
+        <h1 class="demos-title">wifi设置</h1>
+    </header>
+
+    <div class="weui-tab"> 
+
+<div class="weui-cells weui-cells_form">
+    <div class="weui-panel weui-panel_access">
+            <div class="weui-panel__hd">网络状态</div>
+            <div class="weui-panel__bd">
+    <div class="weui-cell">
+        <div class="weui-cell__hd"><label style="font-size: 14px;" class="weui-label">IP地址</label></div>
+        <div class="weui-cell__bd" >
+            <input class="weui-input" id="devIp" ng-readonly="true" ng-model="devIp" type="text" maxlength="15" placeholder="">
+        </div>
+    </div>
+    <div class="weui-cell">
+        <div class="weui-cell__hd">
+            <label style="font-size: 14px;" class="weui-label">Mac地址</label>
+        </div>
+        <div class="weui-cell__bd">
+            <input ng-model="devMac" id="devMac" ng-readonly="true" class="weui-input" type="text" maxlength="17" placeholder="">
+        </div>
+    </div>
+    <div class="weui-cell">
+            <div class="weui-cell__hd">
+                <label style="font-size: 14px;" class="weui-label">Wifi状态</label>
+            </div>
+            <div class="weui-cell__bd">
+                <input ng-model="devWifi" id="devWifi" ng-readonly="true" class="weui-input" type="text" maxlength="17" placeholder="">
+            </div>
+        </div>
+</div>
+</div>
+
+<div class="weui-cells__title">设置wifi</div>
+    <div class="weui-cells weui-cells_form">
+            <div class="weui-cell">
+              <div class="weui-cell__hd"><label style="font-size: 14px;" class="weui-label">Wifi名称</label></div>
+              <div class="weui-cell__bd">
+                <input ng-model="wifi_ssid" class="weui-input" type="text" placeholder="请输入wifi名称">
+              </div>
+            </div>
+            <div class="weui-cell">
+                    <div class="weui-cell__hd"><label style="font-size: 14px;" class="weui-label">Wifi密码</label></div>
+                    <div class="weui-cell__bd">
+                      <input ng-model="wifi_psk" class="weui-input" type="text"  placeholder="请输入wifi密码">
+                    </div>
+                    <div class="weui-cell__ft">
+                    <button class="weui-vcode-btn" ng-click="updateWifi()">设置</button>
+                    </div>
+                  </div>
+    </div>
+
+    <label for="weuiAgree" class="weui-agree" ng-click="showMiAcpTutor();">
+            <span class="weui-agree__text">
+                设置wifi后需要重启网络才能生效！
+            </span>
+    </label>
+    <div class="weui-btn-area">							
+        <a class="weui-btn weui-btn_primary"  ng-click="rebootWifi()" href="javascript:void(0);" id="showTooltips">重启网络</a>
+    </div>
+
+</div>
+
+
+</div>

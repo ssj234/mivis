@@ -1,0 +1,1 @@
+nohup /home/pi/frp.arm/frpc -c /home/pi/frp.arm/frpc.ini > /home/pi/mivis/log/frpc.log &

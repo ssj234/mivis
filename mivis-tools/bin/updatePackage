@@ -1,0 +1,70 @@
+package=$1
+devtype=`hostname`
+
+if [ $package = "forever" ];then
+	realPackage="forever"
+	bin="forever"
+	link="sudo ln -s /usr/local/lib/node_modules/forever/bin/forever  /usr/local/bin/$bin"
+fi
+
+if [ $package = "mivis" ];then
+	realPackage="mivis-center"
+	bin="sirivis_web_mi"
+	link="sudo ln -s /usr/local/lib/node_modules/mivis-center/bin/startup  /usr/local/bin/$bin"
+fi
+if [ $package = "broadlink" ];then
+	realPackage="homebridge-broadlink-mivis"
+fi
+if [ $package = "aqara" ];then
+	realPackage="homebridge-mi-aqara-mivis"
+fi
+if [ $package = "aqara-taobao" ];then
+	realPackage="homebridge-mi-aqara"
+fi
+if [ $package = "yeelight" ];then
+	realPackage="homebridge-yeelight"
+fi
+if [ $package = "mivis" ];then
+	realPackage="mivis"
+fi
+if [ $package = "acp" ];then
+	realPackage="homebridge-mi-acpartner-mivis"
+fi
+
+realPackageDownload=$realPackage
+
+if [ $package = "homebridge" ];then
+	realPackage="homebridge"
+	if [ $devtype = "NanoPi-NEO" ];then
+		realPackageDownload="homebridge.h3"
+	fi
+	if [ $devtype != "NanoPi-NEO" ];then
+		realPackageDownload="homebridge"	
+	fi	
+	bin="homebridge"
+	link="sudo ln -s /usr/local/lib/node_modules/homebridge/bin/homebridge  /usr/local/bin/$bin"
+fi
+
+
+echo realPackage is: $realPackage,download:$realPackageDownload bin: $bin link: $link
+
+cd /home/pi/
+sudo rm $realPackageDownload.tar.gz
+wget -N http://web.uxiaowo.com/mivis/$realPackageDownload.tar.gz
+
+if [ $package = "mivis" ];then
+	tar zxvf $realPackageDownload.tar.gz
+	exit 0
+fi
+
+cd /usr/local/lib/node_modules/
+sudo rm -rf $realPackage/
+cd /home/pi/
+sudo tar zxvf $realPackageDownload.tar.gz -C /usr/local/lib/node_modules/
+
+if [ ! -d $bin ];then
+  if [ ! -f "/usr/local/bin/"$bin ];then
+	$link
+  fi
+fi
+killall $realPackage

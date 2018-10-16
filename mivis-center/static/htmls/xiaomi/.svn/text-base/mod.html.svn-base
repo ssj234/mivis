@@ -1,0 +1,12 @@
+<div ng-controller="BodyController">
+    
+    <div class="panel panel-default">
+        <div class="panel-heading">使用</div>
+        <div class="panel-body">
+            <h3>ux.js!</h3>
+            <p>ux.js是一个js框架集合，基于angularJS。</p>
+            <div style="height: 800px"></div>
+        </div>
+        </div>
+    </div>
+</div>
