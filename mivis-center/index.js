@@ -48,6 +48,8 @@ if(!fs.existsSync(hbConfigPath)){ // 没有config文件
   }));
 }
 
+// 启动Airplay
+exec("cd /home/pi/shairplay &&  shairplay -a 'mivis_"+devUtil.getIp()+"'",function(){})
 
 app.use(express.static(path.join(__dirname,'static')));
 app.use("*", function(request, response, next) {
@@ -61,6 +63,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 var miDM = new miDevManager();
 miDM.sendWhoisCommand();
 
+// 获取网关列表
 // {"7c49eb82b2c6":{"sid":"7c49eb82b2c6","passwd":"none","ip":"192.168.1.33","port":"9898","proto_version":"2.0.1","model":"acpartner.v3","token":"RTMKh0pIuEhfviRX"},"7811dce1b453":{"sid":"7811dce1b453","passwd":"none","ip":"192.168.1.20","port":"9898","proto_version":"1.1.2","model":"gateway","token":"PwghPIvlpigGphUv"}}
 
 function getMiGateway(){
@@ -73,7 +76,7 @@ function getMiGateway(){
   return ret;
 }
 
-// 
+// 获取网关的子设备
 function getMiGatewaySubDevice(gwsid){
   var gws = miDM.getAllDevices(gwsid);
   var ret = [];
@@ -216,18 +219,19 @@ app.post('/miGatewayUpdate',bodyParser.text(),async function(req,res){
 /*************************************************
  * 小米设备控制
  ************************************************/
+// 打开网关灯
 app.post('/openGWLight',bodyParser.text(),async function(req,res){
   var dev = req.body;//JSON.parse();
   miDM.gwControlLight(dev.mac,true,dev.token);
   res.end(JSON.stringify({success:true}));
 });
-
+// 关闭网关灯
 app.post('/closeGWLight',bodyParser.text(),async function(req,res){
   var dev = req.body;//JSON.parse();
   miDM.gwControlLight(dev.mac,false,dev.token);
   res.end(JSON.stringify({success:true}));
 });
-
+// 添加设备
 app.post('/joinDevice',bodyParser.text(),async function(req,res){
   var dev = req.body;//JSON.parse();
   miDM.joinDevice(dev.mac,dev.joinOpen,dev.token);
@@ -280,13 +284,13 @@ app.get("/wifiRestart",async function(req,res){
 /*************************************************
  * 设备管理
  ************************************************/
-
+// 重启设备
 app.get("/reboot",function(req,res){
   exec("sudo reboot", function (err, stdout, stderr) {});
   res.end(JSON.stringify({}));
 });
 
-
+// 重启homebridge
 app.get('/rebootHB', function (req, res) {
   var isStop = false;
   exec("ps aux | grep homebridge", function (err, stdout, stderr) {
@@ -316,14 +320,14 @@ app.get('/rebootHB', function (req, res) {
       })
     })
 })
-
+// 删除缓存
 app.get("/delCache",function(req,res){
   emptyDir(path.join(homebridgePath,"persist"));
   emptyDir(path.join(homebridgePath,"plugin-persist"));
   res.end(JSON.stringify({success:true}));
 });
 
-
+// 查询网桥协议代码
 app.get("/qrcode",function(req,res){
   var command = "cat `forever logs | awk '{if ($3~/homebridge/) print $4;else print \"nolog\"}'|sed -r \"s/\\x1B\\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]\/\/g\"` |grep X-HM| tail -n 1";
   exec(command, function (err, stdout, stderr) {
@@ -343,6 +347,7 @@ app.get("/qrcode",function(req,res){
   });
 })
 
+// 查询运行状态
 app.get("/runstatus",function(req,res){
   var status = false;
   var pid = -1;
@@ -369,6 +374,15 @@ app.get("/runstatus",function(req,res){
       res.end(JSON.stringify({status:status,pid:pid,pinCode:pinCode}));
     });
 })
+
+// 开启远程协助
+app.get("/remoteHelp",function(req,res){
+  exec("/home/pi/mivis/bin/startFrpc",function(){
+    res.end(JSON.stringify({success:true}));
+  });
+  res.end(JSON.stringify({success:true}));
+});
+
 
 // 删除缓存
 function emptyDir(fileUrl){   

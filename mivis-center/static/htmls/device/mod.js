@@ -32,6 +32,16 @@ function DeviceController($scope, $http, $targets,$interval) {
         });
     }
 
+    $scope.frpc = function(){
+      $.confirm("确定要启动远程协助吗？启动请先联系！", function() {
+        $http.get("remoteHelp").then(function(data){
+          $.toast("启动成功！");
+        },function(){
+          $.toast("启动失败！");
+        });
+      });
+    }
+
     /*$scope.drawQRCode = function(){
       $http.get("qrcode").then(function(data){
         
