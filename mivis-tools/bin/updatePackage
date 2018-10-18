@@ -7,9 +7,9 @@ if [ $package = "forever" ];then
 	link="sudo ln -s /usr/local/lib/node_modules/forever/bin/forever  /usr/local/bin/$bin"
 fi
 
-if [ $package = "mivis" ];then
+if [ $package = "mivis-center" ];then
 	realPackage="mivis-center"
-	bin="sirivis_web_mi"
+	bin="mivis_center"
 	link="sudo ln -s /usr/local/lib/node_modules/mivis-center/bin/startup  /usr/local/bin/$bin"
 fi
 if [ $package = "broadlink" ];then

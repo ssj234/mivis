@@ -1,1 +1,1 @@
-forever start -l web.mi.`date +%Y-%m-%d#%H:%M:%S`.log /usr/local/bin/mivis_center
+forever start -l mivis.`date +%Y-%m-%d#%H:%M:%S`.log /usr/local/bin/mivis_center
