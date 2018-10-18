@@ -1,7 +1,7 @@
 # 1.mivis
 mivis项目的目的是为了更快，更便捷的使用将小米网关，博联相关设备加入到homekit中
 
-[]
+![software](screen/software.png)
 
 # 2.所需硬件
 
@@ -9,12 +9,16 @@ mivis项目的目的是为了更快，更便捷的使用将小米网关，博联
 * micro-sd卡，class10 16G即可
 * 读卡器
 
+![hardware](screen/hardware.jpg)
+![card](screen/card.jpg)
+
 # 3.所需软件
 
 * windows系统需要下载putty软件，用来连接到主机，https://www.putty.org/
 * etcher软件,用来将系统刻录到sd卡中，下载地址 https://etcher.io/ 
 * 树莓派需要下载raspbian镜像 下载地址 https://www.raspberrypi.org/downloads/raspbian/ 选择RASPBIAN STRETCH LITE下载，大小365.8M
 * NanoPi H3需要下载Nanopi系统 下载地址: https://pan.baidu.com/s/1ZZIqhZAgaJxAZtwyd2v13w
+![etcher](screen/etcher.png)
 
 # 4.烧录系统
 
