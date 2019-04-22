@@ -124,6 +124,7 @@ routeApp.run(["$rootScope", function ($rootScope) {
 // {name: "博联", url: "broadlink",img:"icon_nav_button.png",count:0},
 angular.module("main").value("menu", [
 	{name: "小米", url: "xiaomi",img:"icon_nav_button.png",count:0},
+	{name: "博联", url: "broadlink",img:"icon_nav_button.png",count:0},
 	{name: "wifi设置", url: "network",img:"icon_nav_button.png",count:0},
 	{name: "设备管理",url: "device",img:"icon_nav_button.png",count:0}
 ]).run(["$rootScope", "menu", function ($rootScope, menu) {

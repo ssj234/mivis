@@ -1,0 +1,23 @@
+{
+  "name": "mivis-broadlink-dm",
+  "version": "0.0.1",
+  "description": "mivis的博联设备管理器",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/findDevice.js",
+    "scan": "node bin/scan.js",
+    "server": "node test/testtcpserver.js",
+    "client": "node test/testtcpclient.js"
+  },
+  "keywords": [
+    "mivis"
+  ],
+  "bin": {
+    "BLScanner": "bin/scan.js"
+  },
+  "author": "ssj234",
+  "license": "ISC",
+  "dependencies": {
+    
+  }
+}

@@ -572,6 +572,12 @@ MiAqaraPlatform.prototype.joinDevice = function(deviceSid,value,password) {
     this.sendWriteCommandWithoutFeedback(deviceSid,password,command,{password:password});
 }
 
+MiAqaraPlatform.prototype.acPower = function(deviceSid,value,password) {
+    var device = this.DeviceUtil.getBySid(deviceSid);
+    var command = '{"cmd":"write","model":"' + device.model + '","sid":"' + device.sid + '","params":[{"on_off_cfg":"on"}], "key": "${key}"}';
+    this.sendWriteCommandWithoutFeedback(deviceSid,password,command,{password:password});
+}
+
 MiAqaraPlatform.prototype.getAllGateways = function() {
     return this.GatewayUtil.getAll();
 }
