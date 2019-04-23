@@ -68,7 +68,7 @@ routeApp.config(["$autoStateProvider",function ($autoStateProvider){
     });
 }]);
 
-routeApp.run(["$rootScope", function ($rootScope) {
+routeApp.run(["$rootScope","$http", function ($rootScope,$http) {
      
       $rootScope.gwtypes = {
 		"gateway":"网关",
@@ -113,7 +113,23 @@ routeApp.run(["$rootScope", function ($rootScope) {
 		"lock.aq1":"门锁",
 		"acpartner.v3":"空调伴侣升级版",
 		"remote.b286acn01":"86型无线双按钮开关升级版"
-      };
+	  };
+	  
+	  // sned data
+	  $rootScope.sendHex = function(mac,data){
+		if(!mac){
+			mac = $rootScope.learndRMMac;
+		}
+		if(!mac){
+			$.toast("mac地址不能为空！", "forbidden");
+			return;
+		}
+		// var data = scope.$eval(model);
+		$http.post("/BLSendData",{mac:mac,data:data}).success(function(data){
+			$.toptip('发送成功！','success');
+		});
+	}
+
 }]).filter("gwtype",["$rootScope",function($rootScope) {
 	return function (input) {
 	var ret = $rootScope.gwtypes[input];

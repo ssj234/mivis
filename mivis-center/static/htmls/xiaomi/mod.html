@@ -31,10 +31,10 @@
                                                                 <div class="weui-flex">                
                                                                         <div class="weui-flex__item">
                                                                                 <h4 ng-if="device.online" class="weui-media-box__title">
-                                                                                        [在线] MAC：{{device.mac}}
+                                                                                        [在线] {{device.mac}}
                                                                                 </h4>
                                                                                 <h4 ng-if="!device.online" class="weui-media-box__title">
-                                                                                        MAC：{{device.mac}}
+                                                                                        [离线] {{device.mac}}
                                                                                 </h4>
                                                                                 <p ng-if="device.online" class="weui-media-box__desc">
                                                                                         IP：{{device.ip}}

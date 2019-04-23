@@ -2,37 +2,163 @@
 BroadlinkController.$inject = ['$scope', '$http', '$targets'];
 function BroadlinkController($scope, $http, $targets) {
 
-    $scope.configObject = {type:"gw",update:false};
+    $scope.configObject = {type:"rm",update:false};
     $scope.unselected = []; 
     $scope.selectedDevice = {};
 
-    function getMac(obj){
-        for(var mac in obj){
-            return mac;
-        }
-        return undefined;
+
+    $scope.reloadDeviceList = function(){
+        $scope.deviceList = {};
+        $.toptip('刷新中...', 3000,'warning');
+        // 发送信号，然后获取设备
+        $http.get("broadlinkListRefresh").then(function(data){
+            setTimeout(function(){
+                // 重新加载
+                $scope.loadDeviceList(null,true);
+              },3000);
+        });
     }
 
+    // 加载空调品牌
+	$scope.loadAirBrand = function(){
+		if(!$scope.BLAirBrand){
+			$http.post("/groupBrand",{
+				brand:$scope.selectedBrand
+				}).then(function(data){
+				if(!data.data.error){
+                    $scope.BLAirBrand = data.data.List;
+                    if($scope.selectedDevice.brand){
+                        scope.configObject.brand = $scope.selectedDevice.brand;
+                    }
+				}
+			});
+		}
+    }
+    $scope.loadAirBrand(); // 加载空调品牌
+
+    $scope.loadBrandType = function(){
+        // configObject.acBrand
+        $http.post("/findBrand",{
+			brand:$scope.configObject.acBrand
+			}).then(function(data){
+			if(!data.data.error){
+                $scope.BLAirBrandTemplates = data.data.List;
+                if($scope.selectedDevice.acBrandSeq){
+                    for (var idx in $scope.BLAirBrandTemplates){
+                        var  template = $scope.BLAirBrandTemplates[idx];
+                        if(template.brandseq == $scope.selectedDevice.acBrandSeq){
+                            $scope.configObject.acBrandType = template;
+                            $scope.loadBrandTypeCode();
+                        }
+                    }
+                }
+			}else{
+				alert('查询失败!');
+			}
+			try{$scope.$digest();}catch(e){}
+		});
+    }
+
+    // 选择了型号
+    $scope.loadBrandTypeCode = function(){
+        console.log($scope.configObject.acBrandType);
+        var code = JSON.parse($scope.configObject.acBrandType.code);
+        $scope.configObject.data = code;
+        $scope.configObject.acBrandSeq = $scope.configObject.acBrandType.brandseq;
+    }
+
+    $scope.test18 = function(){
+        if(!$scope.configObject.mac){
+            $.toast("请先输入mac地址！", "forbidden");
+            return;
+        }
+        if(!$scope.configObject.acBrandType){
+            $.toast("请先选择空调品牌和模板！", "forbidden");
+            return;
+        }
+        var code = JSON.parse($scope.configObject.acBrandType.code);
+        code = code.cool.temperature18;
+        $scope.sendHex($scope.configObject.mac,code);
+    }
+
+    $scope.test25 = function(){
+        if(!$scope.configObject.mac){
+            $.toast("请先输入mac地址！", "forbidden");
+            return;
+        }
+        if(!$scope.configObject.acBrandType){
+            $.toast("请先选择空调品牌和模板！", "forbidden");
+            return;
+        }
+        var code = JSON.parse($scope.configObject.acBrandType.code);
+        code = code.auto.temperature25;
+        $scope.sendHex($scope.configObject.mac,code);
+    }
+
+    $scope.test30 = function(){
+        if(!$scope.configObject.mac){
+            $.toast("请先输入mac地址！", "forbidden");
+            return;
+        }
+        if(!$scope.configObject.acBrandType){
+            $.toast("请先选择空调品牌和模板！", "forbidden");
+            return;
+        }
+        var code = JSON.parse($scope.configObject.acBrandType.code);
+        code = code.heat.temperature30;
+        $scope.sendHex($scope.configObject.mac,code);
+    }
+
+    $scope.testClose = function(){
+        if(!$scope.configObject.mac){
+            $.toast("请先输入mac地址！", "forbidden");
+            return;
+        }
+        if(!$scope.configObject.acBrandType){
+            $.toast("请先选择空调品牌和模板！", "forbidden");
+            return;
+        }
+        var code = JSON.parse($scope.configObject.acBrandType.code);
+        code = code.off;
+        $scope.sendHex($scope.configObject.mac,code);
+    }
+
+    
+
+	$scope.selectTemplate = function($index){
+		$scope.BLAirSelected = $scope.BLAirBrandTemplates[$index];
+		$scope.BLAirBrandTemplateSelected = "模板:"+$scope.BLAirSelected.description;
+		var code = JSON.parse($scope.BLAirSelected.code);
+		$scope.configObject.test = {
+			auto25:code.auto.temperature25,
+			heat30:code.heat.temperature30,
+			cool18:code.cool.temperature18,
+			off:code.off
+		}
+	}
+
+    
+
     $scope.add2Hb = function(){
-        var ret = {"gw":[]};// 
+        var ret = {"rm":[]};// 
         for(var index in $scope.deviceList){
             var dev = $scope.deviceList[index];
             if(dev.checked){
-                if(!dev.token){
-                    $.toast("未设置"+dev.mac+"的密钥！", "forbidden");
+                if(!dev.acBrand || !dev.acBrandSeq || !dev.data ){
+                    $.toast("未选择"+dev.mac+"的空调模板！", "forbidden");
                     return;
                 }
-                ret['gw'].push({mac:dev.mac,token:dev.token});
+                ret['rm'].push({mac:dev.mac,data:dev.data});
             }
         }
-        if(ret['gw'].length == 0){
+        if(ret['rm'].length == 0){
             $.toast("请先选择要添加的设备！", "forbidden");
             return;
         }
 
         $http({
             method:'post',  
-            url:"miSave2Hb",  
+            url:"blSave2Hb",  
             data:ret 
         }).success(function(req){  
             $.toast("已同步到homekit中！");
@@ -40,12 +166,14 @@ function BroadlinkController($scope, $http, $targets) {
     }
 
     $scope.updateLocal = function(){
-        $scope.resetConfigObject();
+        $scope.resetConfigObject(); // configObject是要配置的对象，先初始化一下
         $scope.configObject.mac = $scope.selectedDevice.mac;
-        $scope.configObject.token = $scope.selectedDevice.token;
+        $scope.configObject.acBrand = $scope.selectedDevice.acBrand; // 品牌
+        // $scope.configObject.acBrandType = $scope.selectedDevice.brandType; // 型号
         $scope.configObject.update= true;
+        // 
         $("#addPopup").popup();
-        $("#gw_token").focus();
+        $scope.loadBrandType();
     }
 
     $scope.deleteLocal = function(){
@@ -54,7 +182,7 @@ function BroadlinkController($scope, $http, $targets) {
             //点击确认后的回调函数
             $http({
                 method:'post',  
-                url:'miGatewayRemove',  
+                url:'broadlinkRemove',  
                 data:$scope.selectedDevice 
             }).success(function(req){  
                 $scope.loadDeviceList();
@@ -84,18 +212,13 @@ function BroadlinkController($scope, $http, $targets) {
     }
 
     $scope.loadDeviceList = function(cb,toptip){
-        $http.get("miGatewayList").then(function(data){
-            $scope.deviceList = data.data.alldev;
-            $scope.hbDeviceList = data.data.hbdev;
+        $http.get("broadlinkList").then(function(data){
+            $scope.deviceList = data.data.alldev; // 所有dev
+            $scope.hbDeviceList = data.data.hbdev; // homebridge中的dev
             for(var index in $scope.deviceList){
                 var mac = $scope.deviceList[index].mac;
-                /*if($scope.unselected.indexOf(mac) == -1){
-                    $scope.deviceList[index].checked = true;
-                }else{
-                    $scope.deviceList[index].checked = false;
-                }*/
-
-                if($scope.hbDeviceList.indexOf(mac) > -1){
+                
+                if($scope.hbDeviceList.indexOf(mac) > -1){ // 在hb中
                     $scope.deviceList[index].checked = true;
                 }
             }
@@ -122,7 +245,7 @@ function BroadlinkController($scope, $http, $targets) {
     }
 
     $scope.resetConfigObject = function(){
-        $scope.configObject = {type:"gw",update:false};
+        $scope.configObject = {type:"rm",update:false};
     }
 
     function macInList(mac){
@@ -133,50 +256,44 @@ function BroadlinkController($scope, $http, $targets) {
         return false;
     }
 
-   
-
+    // 添加和修改设备
     $scope.addDevice=function(update){
 
         if(!update){ // add
             if(!$scope.configObject.mac){
-                $.alert("请输入小米网关的mac地址",function(){
+                $.alert("请输入RM的mac地址",function(){
                   $("#gw_mac").focus();
                 });
                 return;
               }
-              if(!/([a-fA-F0-9]{2}){5}[a-fA-F0-9]{2}/.test($scope.configObject.mac)){
-                $.alert("mac地址的格式不正确",function(){
-                  $("#gw_mac").focus();
-                });
-                return;
-              }
+        
               if(macInList($scope.configObject.mac)){ // 
-                $.alert("网关mac地址已经存在",function(){
+                $.alert("RM的mac地址已经存在",function(){
                   $("#gw_mac").focus();
                 });
                 return;
               }
         }
-          if(!$scope.configObject.token){
-            $.alert("请输入小米网关的局域网密钥",function(){
-              $("#gw_token").focus();
+          if(!$scope.configObject.acBrand){
+            $.alert("请选择空调品牌",function(){
+              
             });
             return;
           }
-  
-          if(!/^[0-9a-zA-Z]{16}$/.test($scope.configObject.token)){
-            $.alert("局域网密钥的格式不正确",function(){
-              $("#gw_token").focus();
+
+          if(!$scope.configObject.acBrandType){
+            $.alert("请选择空调模板",function(){
+              
             });
             return;
           }
-  
-          
+
           // add
-        var url = "miGatewayAdd";
+        var url = "broadlinkAdd";
         if(update){
-            url = "miGatewayUpdate";
+            url = "broadlinkUpdate";
         }
+        delete $scope.configObject["acBrandType"];
         $http({
             method:'post',  
             url:url,  

@@ -4,6 +4,7 @@ var fs = require('fs');
 var os = require('os');
 var path = require('path');
 var app = express();
+var ServerURL = "https://www.uxiaowo.com/sirivis/action";
 var request=require('request');  
 var bodyParser = require('body-parser');
 const childProcess = require('child_process');
@@ -13,9 +14,15 @@ const hbConfigPath = path.join(homebridgePath,"config.json");
 const mivisPath = os.homedir() + '/.mivis';
 const mivisConfigPath = path.join(mivisPath,"config");
 const mivisConfigKey = "mivisConfig";
+const mivisBroadlinkKey = "mivisConfigBroadlink";
 var miDevManager = require('mivis-mi-dm');
 var mivisStorage = require('node-persist').create();
 mivisStorage.initSync({ dir: mivisConfigPath});
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+var HttpUtils = require('./HttpUtils');
+
+
+var BroadlinkDM = require('mivis-broadlink-dm').BroadlinkDM;
 
 const devUtil = require("./util/DevUtil");
 const wifiUtil = require("./util/WifiUtil");
@@ -63,6 +70,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 var miDM = new miDevManager();
 miDM.sendWhoisCommand();
 
+var broadlinkDM = new BroadlinkDM();
+broadlinkDM.discover(null); // 初始化时建立服务器连接
+
 // 获取网关列表
 // {"7c49eb82b2c6":{"sid":"7c49eb82b2c6","passwd":"none","ip":"192.168.1.33","port":"9898","proto_version":"2.0.1","model":"acpartner.v3","token":"RTMKh0pIuEhfviRX"},"7811dce1b453":{"sid":"7811dce1b453","passwd":"none","ip":"192.168.1.20","port":"9898","proto_version":"1.1.2","model":"gateway","token":"PwghPIvlpigGphUv"}}
 
@@ -72,6 +82,17 @@ function getMiGateway(){
   for(var sid in gws){
     var gw = gws[sid];
     ret.push({mac: gw.sid,ip:gw.ip,type:'gw',model:gw.model});
+  }
+  return ret;
+}
+
+// 获取在线的rm列表
+function getBroadlinkRM(){
+  var rms = broadlinkDM.deviceInfo(); // [{}]
+  var ret = [];
+  for(var mac in rms){
+    var rm = rms[mac];
+    ret.push({mac: toMacStandard(rm.mac),host:rm.host.address,type:'rm'});
   }
   return ret;
 }
@@ -102,7 +123,7 @@ app.get('/miGatewayListRefresh', function (req, res) {
  // 格式：mac:{type:[gw] online:[true|false] mac:[] ip:[] token:[]}
 app.get('/miGatewayList', function (req, res) {
   var ret = {}; // 
-  var scanList = getMiGateway();// [{mac:'111111111111',ip:'127.0.0.1',type:'gw'}];
+  var scanList = getMiGateway();// 所有在线的
   var config = mivisStorage.getItem(mivisConfigKey) || {};
   if(config.addedDeviceMi){
     ret = config.addedDeviceMi;
@@ -138,6 +159,58 @@ app.get('/miGatewayList', function (req, res) {
 
   res.end(JSON.stringify({"alldev":ret,"hbdev":hbdev}));
 });
+
+
+app.get('/broadlinkListRefresh', function (req, res) {
+  broadlinkDM.discover(null);
+  res.end(JSON.stringify({success:true}));
+});
+
+// 获取在线和手动添加的网关
+ // in:
+ // out: {"mac1":{},"mac2":{}}
+ // 格式：mac:{type:[gw] online:[true|false] mac:[] ip:[] token:[]}
+ app.get('/broadlinkList', function (req, res) {
+  var ret = {}; // ret是所有的dev，scanList是在线的
+  var scanList = getBroadlinkRM();// [{mac:'111111111111',host:'127.0.0.1',type:'rm'}];
+  var config = mivisStorage.getItem(mivisBroadlinkKey) || {};
+  if(config.addedDevice){
+    ret = config.addedDevice;
+  }
+  for(var index in ret){ // 遍历本地文件，所有dev
+    ret[index].online = false;
+  }
+  for(var index in scanList){ // 遍历在线列表
+    var onlineDev = scanList[index];
+    var obj = ret[onlineDev.mac];
+    if(obj){ // in add list {mac:} 在本地
+       obj.online = true;
+       obj.ip = onlineDev.host;
+       obj.type = "rm";
+    }else{ // 不再本地,则添加进去
+      ret[onlineDev.mac] = {ip:onlineDev.host,online:true,type:onlineDev.type,mac:onlineDev.mac}
+    }
+  }
+
+  //
+  var data = fs.readFileSync(hbConfigPath); // read
+  var hbdev = [];
+    var hbconfig = JSON.parse(data);
+    var plats = hbconfig.platforms;
+    for(var index in plats){
+      if(plats[index].platform == 'BroadlinkRM'){
+        console.log(">>>>"+ plats[index].host);
+        hbdev.push(toMacStandard(plats[index].host));
+      }
+  }
+
+  res.end(JSON.stringify({"alldev":ret,"hbdev":hbdev}));
+});
+
+function toMacStandard(mac){
+  mac = mac.replace(/:/g,'');
+  return mac.toLowerCase();
+}
 
 // 获取
 app.post('/miSubDevices',bodyParser.text(),async function(req,res){
@@ -396,6 +469,166 @@ function emptyDir(fileUrl){
       fs.unlinkSync(fileUrl+'/'+file); 
     }        
   });   
+}
+
+
+// 获取空调品牌列表
+app.post('/groupBrand',bodyParser.text(),async function(req,res){
+  var info = req.body;//JSON.parse();
+  HttpUtils.postFormJson(ServerURL+"/groupBrand", info, function (result) {
+      if(result.success && result.msg._RetCode == '00000'){
+          res.end(JSON.stringify(result.msg));
+      }else{
+          res.end(JSON.stringify({error:result.msg._RetMsg}));
+      }
+  
+    });
+});
+
+// 获取品牌下的模板
+app.post('/findBrand',bodyParser.text(),async function(req,res){
+  var info = req.body;//JSON.parse();
+  HttpUtils.postFormJson(ServerURL+"/findBrand", info, function (result) {
+      if(result.success && result.msg._RetCode == '00000'){
+          res.end(JSON.stringify(result.msg));
+      }else{
+          res.end(JSON.stringify({error:result.msg._RetMsg}));
+      }
+      
+    });
+});
+
+// 发送
+app.post('/BLSendData',bodyParser.text(),async function(req,res){
+  var host = req.body;//JSON.parse();
+  if(!host){
+      res.end(JSON.stringify({error:99999}));
+      return;
+  }
+  var code = BLSendData(toMacStandard(host.mac),host.data);
+  res.end(JSON.stringify({hex:code}));
+});
+
+function BLSendData(mac,hexData){
+  mac = standMac(mac);
+  var dev = broadlinkDM.getDevice(mac); // 获取mac对应的dev
+    if(dev){ // send data
+      const hexDataBuffer = new Buffer(hexData, 'hex');
+      dev.sendData(hexDataBuffer);
+    }else{
+      console.log('cannot get dev of ' + mac);
+    }
+}
+
+// 手动添加rm
+app.post('/broadlinkAdd',bodyParser.text(),async function(req,res){
+  var gw = req.body;//JSON.parse();
+  var config = mivisStorage.getItem(mivisBroadlinkKey) || {};
+  var  addedDevice = config.addedDevice;
+  if(!addedDevice){
+    addedDevice = config.addedDevice = {};
+  }
+  gw.store = true;
+  addedDevice[gw.mac] = gw;
+  mivisStorage.setItemSync(mivisBroadlinkKey, config);
+  res.end(JSON.stringify({success:true}));
+});
+
+// 修改rm
+// {mac:xxx,token:xxx,type:gw}
+app.post('/broadlinkUpdate',bodyParser.text(),async function(req,res){
+  var gw = req.body;//JSON.parse();
+  var config = mivisStorage.getItem(mivisBroadlinkKey) || {};
+  var  addedDevice = config.addedDevice;
+  if(!addedDevice){
+    addedDevice = config.addedDevice = {};
+  }
+  if(!addedDevice[gw.mac]){
+    addedDevice[gw.mac] = gw;
+  }else{
+    addedDevice[gw.mac].data = gw.data;
+    addedDevice[gw.mac].acBrand = gw.acBrand;
+    addedDevice[gw.mac].acBrandSeq = gw.acBrandSeq;
+  }
+  addedDevice[gw.mac].store = true;
+  mivisStorage.setItemSync(mivisBroadlinkKey, config);
+  res.end(JSON.stringify({success:true}));
+});
+
+// 删除网关
+// in:{mac:xxx,token:xxx,type:gw}
+app.post('/broadlinkRemove',bodyParser.text(),async function(req,res){
+  var gw = req.body;//JSON.parse();
+  var config = mivisStorage.getItem(mivisBroadlinkKey) || {};
+  var  addedDevice = config.addedDevice || {};
+  delete addedDevice[gw.mac];
+  mivisStorage.setItemSync(mivisBroadlinkKey, config);
+  res.end(JSON.stringify({success:true}));
+});
+
+
+ // 添加到config文件
+ // in: {"rm":[{mac:'m1',data:'t1'},{mac:'m2',data:'t2'}]}
+ // out:
+ app.post('/blSave2Hb',bodyParser.text(),async function(req,res){
+  var input = req.body;//JSON.parse();
+  var in_rm = input.rm;
+  if(in_rm){
+    var data = fs.readFileSync(hbConfigPath); // read
+    var hbconfig = JSON.parse(data);
+    var plats = hbconfig.platforms; // 所有的platform
+    var newPlats = []; // 新的platform
+    for(var index in plats){
+      if(plats[index].platform != 'BroadlinkRM'){
+        newPlats.push(plats[index]);
+      }
+    }
+    // 
+    for(var in_index in in_rm){ // 把rm的加进去
+      var rm = in_rm[in_index];
+      newPlats.push({
+        "platform": "BroadlinkRM",
+        "name": "RM-"+rm.mac,
+        "host": standMac(rm.mac),
+        "hideScanFrequencyButton": true,
+        "hideLearnButton": true,
+        "accessories": [
+          {
+            "type": "air-conditioner",
+            "name": "空调-"+rm.mac,
+            "host": standMac(rm.mac),
+            "data": rm.data
+          },
+          {
+            "type":"switch",
+            "name": "空调开关-"+rm.mac,
+            "host": standMac(rm.mac),
+            "data":{
+              "on": rm.data.off,
+              "off":rm.data.off
+            }
+          }
+        ]
+      });
+    }
+    hbconfig.platforms = newPlats;
+    fs.writeFileSync(hbConfigPath,JSON.stringify(hbconfig));
+  }
+  res.end(JSON.stringify({success:true}));
+});
+
+function standMac(mac){
+  if(mac.length == 17){ // 11:22:33:44:55:66
+    return mac;
+  }
+  let ret = "";
+  var t = mac.toString('hex');
+  t = t.split("");
+  for(let i in t){
+      ret += t[i] ;
+      ret += (i%2==1)?":":"";
+  }
+  return ret.substring(0,17);
 }
 
 module.exports = function() {
