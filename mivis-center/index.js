@@ -7,6 +7,7 @@ var app = express();
 var ServerURL = "https://www.uxiaowo.com/sirivis/action";
 var request=require('request');  
 var bodyParser = require('body-parser');
+const shairplay_path = '/home/pi/.shairplay';
 const childProcess = require('child_process');
 const exec = childProcess.exec
 const homebridgePath = os.homedir() + '/.homebridge';
@@ -56,7 +57,10 @@ if(!fs.existsSync(hbConfigPath)){ // 没有config文件
 }
 
 // 启动Airplay
-exec("cd /home/pi/shairplay &&  shairplay -a 'mivis_"+devUtil.getIp()+"'",function(){})
+// console.log(fs.existsSync(shairplay_path));
+if(!fs.existsSync(shairplay_path)){
+  exec("cd /home/pi/shairplay &&  shairplay -a 'mivis_"+devUtil.getIp()+"'",function(){})
+}
 
 app.use(express.static(path.join(__dirname,'static')));
 app.use("*", function(request, response, next) {
@@ -616,6 +620,24 @@ app.post('/broadlinkRemove',bodyParser.text(),async function(req,res){
   }
   res.end(JSON.stringify({success:true}));
 });
+
+
+app.get('/shairplay', function (req, res) {
+  var exist = fs.existsSync(shairplay_path);
+  if(exist){
+    fs.unlinkSync(shairplay_path);
+  }else{
+    fs.writeFileSync(shairplay_path,"end");
+  }
+  res.end(JSON.stringify({success:true,exist:exist}));
+});
+
+app.get('/getShairplay', function (req, res) {
+  var exist = fs.existsSync(shairplay_path);
+  res.end(JSON.stringify({success:true,exist:exist}));
+});
+
+
 
 function standMac(mac){
   if(mac.length == 17){ // 11:22:33:44:55:66

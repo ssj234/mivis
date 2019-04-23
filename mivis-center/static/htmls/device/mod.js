@@ -3,6 +3,7 @@
 DeviceController.$inject = ['$scope', '$http', '$targets','$interval'];
 function DeviceController($scope, $http, $targets,$interval) {
     $scope.runningShow = "获取中...";
+    $scope.existShow = "获取中...";
     $scope.rebootHB = function(){
         $.confirm("确定要重启网桥吗？", function() {
           $http.get("rebootHB").then(function(data){
@@ -33,7 +34,7 @@ function DeviceController($scope, $http, $targets,$interval) {
     }
 
     $scope.frpc = function(){
-      $.confirm("确定要启动远程协助吗？启动请先联系！", function() {
+      $.confirm("确定要启动远程协助吗？启动请先联系技术支持人员！", function() {
         $http.get("remoteHelp").then(function(data){
           $.toast("启动成功！");
         },function(){
@@ -41,6 +42,36 @@ function DeviceController($scope, $http, $targets,$interval) {
         });
       });
     }
+
+    $scope.getShairplay = function(){
+      $http.get("getShairplay").then(function(data){
+        var exist = data.data.exist;
+        if(exist){
+          $scope.existShow = "投射IP";
+        }else{
+          $scope.existShow = "不投射IP";
+        }
+      },function(){
+        $.toast("切换失败！");
+      });
+    }
+    $scope.shairplay = function(){
+      $.confirm("确定要切换投射IP的方式吗，将在重启后生效！", function() {
+        $http.get("shairplay").then(function(data){
+          var exist = data.data.exist;
+          if(exist){
+            $scope.existShow = "不投射IP";
+          }else{
+            $scope.existShow = "投射IP";
+          }
+        },function(){
+          $.toast("切换失败！");
+        });
+      });
+    }
+
+    $scope.getShairplay();
+
 
     /*$scope.drawQRCode = function(){
       $http.get("qrcode").then(function(data){
