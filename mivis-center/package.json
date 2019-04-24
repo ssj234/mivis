@@ -1,6 +1,6 @@
 {
   "name": "mivis-center",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "mivis的配置中心",
   "main": "index.js",
   "scripts": {

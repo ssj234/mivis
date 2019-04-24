@@ -605,10 +605,10 @@ app.post('/broadlinkRemove',bodyParser.text(),async function(req,res){
           },
           {
             "type":"switch",
-            "name": "空调开关-"+rm.mac,
+            "name": "空调",
             "host": standMac(rm.mac),
             "data":{
-              "on": rm.data.off,
+              "on": rm.data.auto.temperature25,
               "off":rm.data.off
             }
           }
